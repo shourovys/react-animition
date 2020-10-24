@@ -1,25 +1,54 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { Route, Switch, useLocation } from "react-router-dom";
+import Header from './components/Header';
+import Home from './components/Home';
+import Base from './components/Base';
+import Toppings from './components/Toppings';
+import Order from './components/Order';
+import { AnimatePresence } from 'framer-motion';
+import PopUp from './components/PopUp';
 
 function App() {
+  const location = useLocation();
+  const [pizza, setPizza] = useState({ base: "", toppings: [] });
+  const [showPopup, setShowPopup] = useState(false)
+
+  const addBase = (base) => {
+    setPizza({ ...pizza, base })
+  }
+
+  const addTopping = (topping) => {
+    let newToppings;
+    if (!pizza.toppings.includes(topping)) {
+      newToppings = [...pizza.toppings, topping];
+    } else {
+      newToppings = pizza.toppings.filter(item => item !== topping);
+    }
+    setPizza({ ...pizza, toppings: newToppings });
+  }
+
+  //exitBeforeEnter sure us any animate of next page not start before the pervious page gone properly
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Header />
+      <PopUp showPopup={showPopup} />
+      <AnimatePresence exitBeforeEnter onExitComplete={() => setShowPopup(false)}>
+        <Switch location={location} key={location.key}>
+          <Route path="/base">
+            <Base addBase={addBase} pizza={pizza} />
+          </Route>
+          <Route path="/toppings">
+            <Toppings addTopping={addTopping} pizza={pizza} />
+          </Route>
+          <Route path="/order">
+            <Order pizza={pizza} setShowPopup={setShowPopup} />
+          </Route>
+          <Route path="/">
+            <Home />
+          </Route>
+        </Switch>
+      </AnimatePresence>
+    </>
   );
 }
 
